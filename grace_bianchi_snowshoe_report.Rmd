@@ -36,7 +36,10 @@ snowshoe_juveniles <- read_csv(here("data", "bonanza_hares.csv")) %>%
   # add new column with just the year 
   mutate(year = year(date)) %>% 
   # filter for juveniles
-  filter(age == "j")
+  filter(age == "j") %>% 
+  mutate(sex = case_when(
+    sex == "f" ~ "female",
+    sex == "m" ~ "male"))
   
 ```
 
@@ -74,17 +77,32 @@ ggplot(data = snowshoe_juveniles, aes(y = weight)) +
 #### C. Juvenile weight comparison by sex
 
 ```{r}
-juvenile_weight_gender <- snowshoe_juveniles %>% 
+juvenile_weight_sex <- snowshoe_juveniles %>% 
   group_by(sex) %>% 
-  summarize(mean =round(mean(weight, na.rm = TRUE), 2),
-            sd = round(sd(weight, na.rm = TRUE), 2),
+  summarize(mean = mean(weight, na.rm = TRUE),
+            sd = sd(weight, na.rm = TRUE),
             sample_size = n())
 
-juvenile_weight_gender %>% 
-  kable(col.names = "Sex",
-        "Mean",
-        "Standard Deviation",
-        "Sample Size")
+juvenile_weight_sex %>% 
+  kable(col.names = c("Sex",
+                      "Mean",
+                      "Standard Deviation",
+                      "Sample Size"),
+        digits = 2,
+        caption = "Juvenile Weights by Sex") %>% 
+  kable_styling(full_width = FALSE)
+
 ```
+
+A 2 - 3 sentence comprehensive statement of the means comparison, including at least:
+○ The actual difference in means
+○ Effect size (Cohen's *d*) (see effsize::cohen.d() example in
+the Lab 5 key)
+○ Outcome of an unpaired two-sample t-test
+
+```{r}
+sex_cohen <- cohen.d(female, male)
+```
+
 
 Data citation: Kielland, K., F.S. Chapin, R.W. Ruess, and Bonanza Creek LTER. 2017. Snowshoe hare physical data in Bonanza Creek Experimental Forest: 1999-Present ver 22. Environmental Data Initiative. https://doi.org/10.6073/pasta/03dce4856d79b91557d8e6ce2cbcdc14
