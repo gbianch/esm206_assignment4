@@ -1,0 +1,90 @@
+---
+title: "Bonza Snowshoe Exploratory Report"
+author: "Grace Bianchi"
+date: "11/6/2021"
+output: html_document
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+
+library(tidyverse)
+library(here)
+library(janitor)
+library(kableExtra)
+library(effsize)
+library(lubridate)
+library(ggbeeswarm)
+```
+
+### 1. Overview
+This report provides an exploratory overview 
+
+Introduction: A 4 - 5 sentence "mini-introduction" to what this study is exploring, including basic background information about the subject, site and study (with citations as needed), and a brief overview of what is included in the exploratory report. You should probably do this last so you know what’s contained in the report.
+
+### 2. Data and methods
+A 3 - 4 sentence section in which you briefly describe the data, including citation & credit as needed, and provide an overview of the main analysis, statistical methods and tools used.
+
+### 3. Prelimnary results
+
+#### A. Annual juvenile hare trap counts
+```{r}
+# read in the data
+snowshoe_juveniles <- read_csv(here("data", "bonanza_hares.csv")) %>% 
+  # convert date to date class and put output in new column
+  mutate(date = mdy(date)) %>% 
+  # add new column with just the year 
+  mutate(year = year(date)) %>% 
+  # filter for juveniles
+  filter(age == "j")
+  
+```
+
+```{r}
+snowshoe_counts <- snowshoe_data %>% 
+  # group by year
+  group_by(year) %>% 
+  # use summarize to get counts for each year
+  summarize(counts = n())
+
+ggplot(data = snowshoe_juveniles, aes(x = year)) +
+  geom_histogram(bins = 15, color = "black") +
+  scale_x_continuous(breaks = c(1998, 2000, 2002, 
+                                2004, 2006, 2008, 2010, 2012)) +
+  labs(title = "Annual juvenile hare trap counts",
+       x = "Year",
+       y = "Count")
+```
+
+Figure 1. Annual juvenile hare trap counts 
+
+What were the minimum and maximum counts of juvenile hare trappings?
+● Mean or median annual number of juvenile hares trapped?
+● General/notable trends?
+● These are absolute counts, but this count is also impacted by
+effort (e.g. the number of days and number of traps in the study each year). What would you suggest be done moving forward (you are not expected to actually do this) to standardize the juvenile hare population in future analyses?
+
+#### B. Juvenile hare weights
+```{r}
+ggplot(data = snowshoe_juveniles, aes(y = weight)) +
+  geom_histogram(aes(fill = sex), bins = 15, position = "dodge") +
+  facet_grid(rows = vars(grid))
+```
+
+#### C. Juvenile weight comparison by sex
+
+```{r}
+juvenile_weight_gender <- snowshoe_juveniles %>% 
+  group_by(sex) %>% 
+  summarize(mean =round(mean(weight, na.rm = TRUE), 2),
+            sd = round(sd(weight, na.rm = TRUE), 2),
+            sample_size = n())
+
+juvenile_weight_gender %>% 
+  kable(col.names = "Sex",
+        "Mean",
+        "Standard Deviation",
+        "Sample Size")
+```
+
+Data citation: Kielland, K., F.S. Chapin, R.W. Ruess, and Bonanza Creek LTER. 2017. Snowshoe hare physical data in Bonanza Creek Experimental Forest: 1999-Present ver 22. Environmental Data Initiative. https://doi.org/10.6073/pasta/03dce4856d79b91557d8e6ce2cbcdc14
